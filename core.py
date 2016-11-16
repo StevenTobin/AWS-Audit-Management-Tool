@@ -8,7 +8,7 @@ import json
 AWSCFG      = "~/.aws/"
 PLUGINCFG   = "~/Project/"
 PROFILES    = []
-RESOURCES   = []
+RESOURCES   = ""
 
 
 # Lists for collection of resources
@@ -24,48 +24,33 @@ def doReadProfiles():
         PROFILES.append(tkey)
 
 def doFindResources():
-    pluginConfig = configparser.SafeConfigParser()
-    pluginConfig.read(PLUGINCFG + "plugins.cfg")
-    for pkey in pluginConfig:
-        print("plug key:" +str(pkey))
-        options = collections.defaultdict(dict)
-        for option in pluginConfig[pkey]:
-            options[pkey][option] = True
-
-            # End up with a dictionary of dictionaries
-            # {ec2: {instances: True}, {SecurityGroup: True}, {Volume: True}}
-            # so we want information of ec2 instances, Security Groups and Volumes
-
-    RESOURCES.append(options)
-
+    pluginData = open("plugins.json").read()
+    RESOURCES = json.loads(pluginData)
+    return RESOURCES
 
 def doCollectResources(s):
-    # TO-DO:    Read in RESOURCES to find out
-    #           which are required. Each resource
-    #           collection function under here will
-    #           then be in a big if-else statement
-
-
-    # Collect EC2 instances
-    print("Collecting EC2 information...")
-    ec2 = s.resource("ec2")
-    for i in ec2.instances.all():
-        inst = str(i)
-        inst = inst[17:-2]
-        INSTANCES.append(inst)
-
-    # Collect EBS information
-    print("Collecting EBS information...")
-    for v in ec2.volumes.all():
-        vol = str(v)
-        vol = vol[15:-2]
-        VOLUMES.append(vol)
-
-    # Collect S3 Buckets
-    print("Collecting S3 information...")
-    s3 = s.resource("s3")
-    for b in s3.buckets.all():
-        BUCKETS.append(b.name)
+    for res in RESOURCES["Plugins"]:
+        if "ec2" in res:
+            # Collect EC2 instances
+            print("Collecting EC2 information...")
+            ec2 = s.resource("ec2")
+            for i in ec2.instances.all():
+                inst = str(i)
+                inst = inst[17:-2]
+                INSTANCES.append(inst)
+        if "ebs" in res:
+            # Collect EBS information
+            print("Collecting EBS information...")
+            for v in ec2.volumes.all():
+                vol = str(v)
+                vol = vol[15:-2]
+                VOLUMES.append(vol)
+        if "s3" in res:
+            # Collect S3 Buckets
+            print("Collecting S3 information...")
+            s3 = s.resource("s3")
+            for b in s3.buckets.all():
+                BUCKETS.append(b.name)
 
 def doFindEC2Information(s):
     ec2 = s.resource("ec2")
@@ -123,7 +108,7 @@ if __name__ == '__main__':
         # TO-DO:    Figure out how this will work for
         #           more than one profile.
 
-    #doFindResources()
+    RESOURCES = doFindResources()
     doCollectResources(s)
 
     #

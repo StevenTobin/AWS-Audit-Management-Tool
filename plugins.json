@@ -1,0 +1,11 @@
+{
+  "Plugins": {
+      "ec2":{
+        "instances": true,
+        "securityGroups": true
+      },
+      "s3": {
+        "name": true
+      }
+  }
+}
