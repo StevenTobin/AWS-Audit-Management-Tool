@@ -5,6 +5,7 @@ import configparser
 import collections
 import json
 import pluginManager
+import sys
 
 AWSCFG      = "~/.aws/"
 PLUGINCFG   = "~/Project/"
@@ -73,7 +74,6 @@ def doFindEC2Information(s):
                       "Tags"            : str(currInstance.tags)
                       }
 
-    print("EC2: " +str(ec2Data))
     return ec2Data
 
 def doFindEBSInformation(s):
@@ -89,7 +89,6 @@ def doFindEBSInformation(s):
                       "SnapshotId"      : str(currVolume.snapshot_id)
                       }
 
-    print("EBS: " +str(volData))
     return volData
 
 def doFindS3Information(s):
@@ -99,11 +98,11 @@ def doFindS3Information(s):
         currBucket = s3.Bucket(name=b)
         s3Data[b] = {}
 
-    print("S3:" +str(s3Data))
     return s3Data
 
 
 if __name__ == '__main__':
+    sys.path.append('/plugins/')
     doReadProfiles()
     for p in PROFILES:
         s = boto3.Session(profile_name=p)
@@ -126,4 +125,4 @@ if __name__ == '__main__':
     # volData
     volData = doFindEBSInformation(s)
 
-    pluginManager.doRunPlugins(EC2INSTANCES, S3BUCKETS, EBSVOLUMES)
+    pluginManager.doRunPlugins(ec2Data, s3Data, volData)
