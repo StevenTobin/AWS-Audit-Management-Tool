@@ -1,11 +1,10 @@
 {
+  "Resources": {
+      "ec2": true,
+      "s3": true,
+      "ebs": true
+  },
   "Plugins": {
-      "ec2":{
-        "instances": true,
-        "securityGroups": true
-      },
-      "s3": {
-        "name": true
-      }
+    "ec2types": true
   }
 }
