@@ -2,4 +2,4 @@
 
 def lambda_handler(e):
     for i in e:
-        print(i + ":" +e[i]["Type"])
+        print(e[i]["State"])

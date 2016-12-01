@@ -125,4 +125,8 @@ if __name__ == '__main__':
     # volData
     volData = doFindEBSInformation(s)
 
-    pluginManager.doRunPlugins(ec2Data, s3Data, volData)
+    #
+    # Plugins
+    #
+    print("Plugins----------------")
+    pluginManager.doRunPlugins(ec2Data, s3Data, volData, RESOURCES)

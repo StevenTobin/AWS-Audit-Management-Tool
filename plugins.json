@@ -5,6 +5,9 @@
       "ebs": true
   },
   "Plugins": {
-    "ec2types": true
+    "ec2types": true,
+    "ec2state": true,
+    "ebstotalsize": true,
+    "ebsstate": true
   }
 }
