@@ -1,0 +1,48 @@
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+
+<MyScreenManager>:
+    id: screen_manager
+    transition: FadeTransition()
+    HomeScreen:
+        id: homeScreen
+    PluginsScreen:
+        id: pluginsScreen
+
+<HomeScreen>:
+    name: 'home'
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: root.text
+            font_size: 30
+            text_size: self.size
+        BoxLayout:
+            Button:
+                text: 'plugins'
+                font_size: 20
+                on_release: app.root.current = 'plugins'
+                size_hint: .3, .3
+            Button:
+                text: 'get ec2 data'
+                font_size: 20
+                on_release: app.root.doStuff()
+                size_hint: .3, .3
+
+<PluginsScreen>:
+    name: 'plugins'
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: 'second screen!'
+            font_size: 30
+        BoxLayout:
+            Button:
+                text: 'goto home screen'
+                font_size: 30
+                on_release: app.root.current = 'home'
+                size_hint: .3, .3
+            Button:
+                text: 'get ec2 data'
+                font_size: 30
+                on_release: app.root.doStuff()
+                size_hint: .3, .3

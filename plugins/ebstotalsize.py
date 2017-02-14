@@ -2,6 +2,7 @@
 
 def lambda_handler(e):
     total = 0
+    ret = []
     for i in e:
         total += int(e[i]["Size"])
-    print("Total EBS Size: " +str(total))
+    ret.append(str(total))

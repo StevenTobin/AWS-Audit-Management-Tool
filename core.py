@@ -2,13 +2,12 @@
 
 import boto3
 import configparser
-import collections
 import json
 import pluginManager
 import sys
+import AWSApp
 
 AWSCFG      = "~/.aws/"
-PLUGINCFG   = "~/Project/"
 PROFILES    = []
 RESOURCES   = ""
 
@@ -19,7 +18,7 @@ S3BUCKETS     = []
 EBSVOLUMES     = []
 
 def doReadProfiles():
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     config.read(AWSCFG + "credentials")
     for key in config:
         tkey = key.lower()
@@ -105,28 +104,30 @@ if __name__ == '__main__':
     sys.path.append('/plugins/')
     doReadProfiles()
     for p in PROFILES:
-        s = boto3.Session(profile_name=p)
+        session = boto3.Session(profile_name=p)
         # TO-DO:    Figure out how this will work for
         #           more than one profile.
 
     RESOURCES = doFindResources()
-    doCollectResources(s)
+    doCollectResources(session)
 
     #
     # Information Gathering
     #
 
     # ec2Data
-    ec2Data = doFindEC2Information(s)
+    ec2Data = doFindEC2Information(session)
 
     # s3Data
-    s3Data = doFindS3Information(s)
+    s3Data = doFindS3Information(session)
 
     # volData
-    volData = doFindEBSInformation(s)
+    volData = doFindEBSInformation(session)
 
     #
     # Plugins
     #
     print("Plugins----------------")
     pluginManager.doRunPlugins(ec2Data, s3Data, volData, RESOURCES)
+
+    AWSApp.AWSApp().run()

@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
 def lambda_handler(e):
+    ret = []
     for i in e:
-        print(e[i]["State"])
+        ret.append(e[i]["State"])
+    return ret
