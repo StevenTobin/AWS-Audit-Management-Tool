@@ -27,20 +27,17 @@ def getEc2Plugs():
     ec2 = []
     for k in ec2PlugOutput.keys():
         ec2.append(ec2PlugOutput[k])
-    print(ec2)
     return ec2
 
 def getS3Plugs():
     s3 = []
     for k in s3PlugOutput.keys():
         s3.append(s3PlugOutput[k])
-    print(s3)
     return s3
 
 def getEbsPlugs():
     ebs = []
     for k in ebsPlugOutput.keys():
         ebs.append(ebsPlugOutput[k])
-    print(ebs)
     return ebs
 
