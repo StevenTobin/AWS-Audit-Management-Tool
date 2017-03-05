@@ -10,18 +10,28 @@ ec2PlugOutput = {}
 s3PlugOutput = {}
 ebsPlugOutput = {}
 
+plugs = []
+services = []
+
 def doRunPlugins(ec2, s3, ebs, resources):
     for p in resources["Plugins"]:
         m = importlib.import_module("plugins."+p)
-        if "ec2" in p:
+        print(resources["Plugins"][p])
+        if "ec2" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ec2)
             ec2PlugOutput[p] = currPlugin
-        elif "s3" in p:
+            plugs.append(p)
+        elif "s3" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(s3)
             s3PlugOutput[p] = currPlugin
-        elif "ebs" in p:
+            plugs.append(p)
+        elif "ebs" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ebs)
             ebsPlugOutput[p] = currPlugin
+            plugs.append(p)
+    for s in resources["Resources"]:
+        if resources["Resources"][s] == True:
+            services.append(s)
 
 def getEc2Plugs():
     ec2 = []
@@ -40,4 +50,10 @@ def getEbsPlugs():
     for k in ebsPlugOutput.keys():
         ebs.append(ebsPlugOutput[k])
     return ebs
+
+def getConfiguredPlugins():
+    return plugs
+
+def getConfiguredServices():
+    return services
 

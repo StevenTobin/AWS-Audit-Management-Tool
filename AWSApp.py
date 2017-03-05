@@ -19,10 +19,11 @@ class HomeScreen(Screen):
     mode = ObjectProperty('spinner')
 
 class PluginsScreen(Screen):
-    pass
+    text = StringProperty('')
 
 class MyScreenManager(ScreenManager):
-    def doStuff(self):
+
+    def doEc2Stuff(self):
         ec2Data = pluginManager.getEc2Plugs()
         ec2 = ''
         for d in ec2Data:
@@ -34,6 +35,41 @@ class MyScreenManager(ScreenManager):
         s = HomeScreen(name = ec2, text = ec2)
         self.add_widget(s)
         self.current = ec2
+
+    def doS3Stuff(self):
+        s3Data = pluginManager.getS3Plugs()
+        s3 = ''
+        for d in s3Data:
+            print(d)
+            for i in d:
+                s3 += str(i)+"\n"
+            l = Label(text=s3)
+            s = HomeScreen(name=s3, text=s3)
+            self.add_widget(s)
+            self.current = s3
+
+    def doConfiguredServices(self):
+        ret = ''
+        servs = pluginManager.getConfiguredServices()
+        for s in servs:
+            ret += s+"\n"
+        print(ret)
+        s = PluginsScreen(name = "confServices", text=ret)
+        l = Label(text = ret)
+        self.add_widget(s)
+        self.current=("confServices")
+
+
+    def doConfiguredPlugins(self):
+        ret = ''
+        plugs = pluginManager.getConfiguredPlugins()
+        for p in plugs:
+            ret += p + "\n"
+        print(ret)
+        s = PluginsScreen(name="confPlugins", text=ret)
+        l = Label(text=ret)
+        self.add_widget(s)
+        self.current = ("confPlugins")
 
 class AWSApp(App):
     def build(self):

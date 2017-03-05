@@ -95,8 +95,7 @@ def doFindS3Information(s):
     s3Data = {}
     for b in S3BUCKETS:
         currBucket = s3.Bucket(name=b)
-        s3Data[b] = {}
-
+        s3Data[b] = {"Name" : str(currBucket.name)}
     return s3Data
 
 

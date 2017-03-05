@@ -23,32 +23,28 @@
                 text: 'Btn0'
             ActionButton:
                 text: 'Btn1'
-            ActionButton:
-                text: 'Btn2'
-            ActionButton:
-                text: 'Btn3'
-            ActionGroup:
-                text: 'grp1'
-                ActionButton:
-                    text: 'Btn4'
-                ActionButton:
-                    text: 'Btn5'
     BoxLayout:
         orientation: 'horizontal'
-        ScrollView:
-            size: self.size
-            GridLayout:
-                cols: 1
-                padding: 0,50,0,0
-                orientation: 'vertical'
-                Button:
-                    text: 'plugins'
-                    font_size: 20
-                    on_release: app.root.current = 'plugins'
-                Button:
-                    text: 'get ec2 data'
-                    font_size: 20
-                    on_release: app.root.doStuff()
+        GridLayout:
+            cols: 1
+            padding: 0,50,0,0
+            orientation: 'vertical'
+            row_default_height: 100
+            row_force_default: True
+            col_default_width: 200
+            col_force_default: True
+            Button:
+                text: 'plugins'
+                font_size: 20
+                on_release: app.root.current = 'plugins'
+            Button:
+                text: 'ec2'
+                font_size: 20
+                on_release: app.root.doEc2Stuff()
+            Button:
+                text: 's3'
+                font_size: 20
+                on_release: app.root.doS3Stuff()
         Label:
             text: root.text
             font_size: 30
@@ -61,8 +57,7 @@
     BoxLayout:
         orientation: 'vertical'
         Label:
-            text: 'second screen!'
-            font_size: 30
+            text: root.text
         BoxLayout:
             Button:
                 text: 'goto home screen'
@@ -70,7 +65,11 @@
                 on_release: app.root.current = 'home'
                 size_hint: .3, .3
             Button:
-                text: 'get ec2 data'
-                font_size: 30
-                on_release: app.root.doStuff()
+                text: 'Configured Services'
+
+                on_release: app.root.doConfiguredServices()
+                size_hint: .3, .3
+            Button:
+                text: 'Configured Plugins'
+                on_release: app.root.doConfiguredPlugins()
                 size_hint: .3, .3
