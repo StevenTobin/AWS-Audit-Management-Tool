@@ -11,7 +11,6 @@ AWSCFG      = "~/.aws/"
 PROFILES    = []
 RESOURCES   = ""
 
-
 # Lists for collection of resources
 EC2INSTANCES   = []
 S3BUCKETS     = []
@@ -98,12 +97,21 @@ def doFindS3Information(s):
         s3Data[b] = {"Name" : str(currBucket.name)}
     return s3Data
 
+def getProfiles():
+    return PROFILES
+
+def setResources(resources):
+    RESOURCES = resources
+
+def loadResources():
+    pass
 
 if __name__ == '__main__':
     sys.path.append('/plugins/')
     doReadProfiles()
     for p in PROFILES:
         session = boto3.Session(profile_name=p)
+        print(p)
         # TO-DO:    Figure out how this will work for
         #           more than one profile.
 

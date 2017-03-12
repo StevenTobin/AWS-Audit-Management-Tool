@@ -5,7 +5,6 @@ import json
 import plugins
 import importlib
 
-
 ec2PlugOutput = {}
 s3PlugOutput = {}
 ebsPlugOutput = {}
@@ -15,18 +14,24 @@ services = []
 
 def doRunPlugins(ec2, s3, ebs, resources):
     for p in resources["Plugins"]:
-        m = importlib.import_module("plugins."+p)
-        print(resources["Plugins"][p])
+        try:
+            m = importlib.import_module("plugins."+p)
+        except:
+            print("Failed import : plugins."+str(p))
+            continue
         if "ec2" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ec2)
+            #ec2PlugOutput["PluginName"] = p
             ec2PlugOutput[p] = currPlugin
             plugs.append(p)
         elif "s3" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(s3)
+            #s3PlugOutput["PluginName"] = p
             s3PlugOutput[p] = currPlugin
             plugs.append(p)
         elif "ebs" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ebs)
+            #ebsPlugOutput["PluginName"] = p
             ebsPlugOutput[p] = currPlugin
             plugs.append(p)
     for s in resources["Resources"]:
@@ -34,16 +39,10 @@ def doRunPlugins(ec2, s3, ebs, resources):
             services.append(s)
 
 def getEc2Plugs():
-    ec2 = []
-    for k in ec2PlugOutput.keys():
-        ec2.append(ec2PlugOutput[k])
-    return ec2
+    return ec2PlugOutput
 
 def getS3Plugs():
-    s3 = []
-    for k in s3PlugOutput.keys():
-        s3.append(s3PlugOutput[k])
-    return s3
+    return s3PlugOutput
 
 def getEbsPlugs():
     ebs = []

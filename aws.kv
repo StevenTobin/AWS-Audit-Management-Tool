@@ -1,75 +1,75 @@
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
+#:import ListAdapter kivy.adapters.listadapter.ListAdapter
+#:import ListItemButton kivy.uix.listview.ListItemButton
+#:import main AWSApp
+
+MainWindow:
+
+<MainWindow>:
+    list_view: list_view
+    orientation: "vertical"
+    cols:1
+    padding: 10
+    spacing: 10
+    BoxLayout:
+        size_hint_y: None
+        height: "40dp"
+        Button:
+            text: "load"
+            on_release: root.update()
+        Button:
+            text: "plugins"
+    BoxLayout:
+        ListView:
+            id: list_view
+            adapter:
+                ListAdapter(data=root.data, cls=main.StudentListButton)
+    Widget:
+        id: separator
+        size_hint_y: None
+        height: 6
+        canvas:
+            Color:
+                rgb: 1., 0., 0.
+            Rectangle:
+                pos: 0, separator.center_y
+                size: separator.width, 2
+
+    MyScreenManager:
 
 <MyScreenManager>:
-    id: screen_manager
-    transition: FadeTransition()
+    id: "manager"
     HomeScreen:
-        id: homeScreen
+        name: "home"
     PluginsScreen:
-        id: pluginsScreen
+        name: "plugins"
 
 <HomeScreen>:
-    name: 'home'
-    ActionBar:
-        pos_hint: {'top':1}
-        ActionView:
-            use_separator: True
-            ActionPrevious:
-                title: 'AWS Audit Tool'
-                with_previous: False
-            ActionOverflow:
-                mode: "spinner"
-            ActionButton:
-                text: 'Btn0'
-            ActionButton:
-                text: 'Btn1'
+    id: "home"
+    orientation: "vertical"
+    padding: 10
+    spacing: 10
     BoxLayout:
-        orientation: 'horizontal'
-        GridLayout:
-            cols: 1
-            padding: 0,50,0,0
-            orientation: 'vertical'
-            row_default_height: 100
-            row_force_default: True
-            col_default_width: 200
-            col_force_default: True
-            Button:
-                text: 'plugins'
-                font_size: 20
-                on_release: app.root.current = 'plugins'
-            Button:
-                text: 'ec2'
-                font_size: 20
-                on_release: app.root.doEc2Stuff()
-            Button:
-                text: 's3'
-                font_size: 20
-                on_release: app.root.doS3Stuff()
-        Label:
-            text: root.text
-            font_size: 30
-            text_size: self.size
-            halign: 'left'
-            valign: 'middle'
+        size_hint_y: None
+        height: "40dp"
+        Button:
+            text: "Plugins"
+            on_release: root.switch_to("plugins")
+        Button:
+            text: "A button"
 
-<PluginsScreen>:
-    name: 'plugins'
+<PluginsScreen>
+    id: "plugins"
+    orientation: "vetical"
+    padding: 10
+    spacing: 10
+    Label:
+        text: "test text"
     BoxLayout:
-        orientation: 'vertical'
-        Label:
-            text: root.text
-        BoxLayout:
-            Button:
-                text: 'goto home screen'
-                font_size: 30
-                on_release: app.root.current = 'home'
-                size_hint: .3, .3
-            Button:
-                text: 'Configured Services'
-
-                on_release: app.root.doConfiguredServices()
-                size_hint: .3, .3
-            Button:
-                text: 'Configured Plugins'
-                on_release: app.root.doConfiguredPlugins()
-                size_hint: .3, .3
+        size_hint_y: None
+        height: "40dp"
+        Button:
+            text: "Home"
+            on_release: root.switch_to("home")
+        Button
+            text: "A button"
