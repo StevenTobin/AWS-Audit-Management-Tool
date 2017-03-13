@@ -20,6 +20,8 @@ import boto3
 class HomeScreen(Screen):
     text = StringProperty('')
 
+    # overwrite the switch_to function to control the
+    #   screenmanager from here
     def switch_to(self, text):
         self.manager.transition.direction = 'right'
         self.manager.current = text
@@ -28,6 +30,8 @@ class HomeScreen(Screen):
 class PluginsScreen(Screen):
     text = StringProperty('')
 
+    # overwrite the switch_to function to control the
+    #   screenmanager from here
     def switch_to(self, text):
         self.manager.transition.direction = 'left'
         self.manager.current = text
@@ -48,6 +52,7 @@ class MainWindow(GridLayout):
     text = StringProperty('')
     data = ListProperty([])
 
+    # Parse the plugin data and populate the listview
     def update(self):
         s3Data = pluginManager.getS3Plugs()
         tData = []
@@ -68,6 +73,8 @@ class MainWindow(GridLayout):
         self.data = tData
 
 
+    # overwrite the switch_to function to control the
+    #   screenmanager from here
     def switch_to(self, text):
         self.manager.current = text.screen
         self.current = text

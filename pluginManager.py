@@ -5,10 +5,17 @@ import json
 import plugins
 import importlib
 
+
+#
+# Dictionaries for plugin output
+#
 ec2PlugOutput = {}
 s3PlugOutput = {}
 ebsPlugOutput = {}
 
+#
+# Lists for informational functions
+#
 plugs = []
 services = []
 
@@ -21,17 +28,14 @@ def doRunPlugins(ec2, s3, ebs, resources):
             continue
         if "ec2" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ec2)
-            #ec2PlugOutput["PluginName"] = p
             ec2PlugOutput[p] = currPlugin
             plugs.append(p)
         elif "s3" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(s3)
-            #s3PlugOutput["PluginName"] = p
             s3PlugOutput[p] = currPlugin
             plugs.append(p)
         elif "ebs" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ebs)
-            #ebsPlugOutput["PluginName"] = p
             ebsPlugOutput[p] = currPlugin
             plugs.append(p)
     for s in resources["Resources"]:

@@ -11,7 +11,9 @@ AWSCFG      = "~/.aws/"
 PROFILES    = []
 RESOURCES   = ""
 
+#
 # Lists for collection of resources
+#
 EC2INSTANCES   = []
 S3BUCKETS     = []
 EBSVOLUMES     = []
@@ -23,7 +25,7 @@ def doReadProfiles():
         tkey = key.lower()
         PROFILES.append(tkey)
 
-def doFindResources():
+def doReadResources():
     pluginData = open("plugins.json").read()
     RESOURCES = json.loads(pluginData)
     return RESOURCES
@@ -103,9 +105,6 @@ def getProfiles():
 def setResources(resources):
     RESOURCES = resources
 
-def loadResources():
-    pass
-
 if __name__ == '__main__':
     sys.path.append('/plugins/')
     doReadProfiles()
@@ -115,7 +114,7 @@ if __name__ == '__main__':
         # TO-DO:    Figure out how this will work for
         #           more than one profile.
 
-    RESOURCES = doFindResources()
+    RESOURCES = doReadResources()
     doCollectResources(session)
 
     #
