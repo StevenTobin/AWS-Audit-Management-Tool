@@ -18,12 +18,20 @@ MainWindow:
             text: "load"
             on_release: root.update()
         Button:
-            text: "plugins"
+            text: "clear"
+            on_release: root.clear()
+        Button:
+            text: "display"
+            on_release: root.display()
     BoxLayout:
         ListView:
             id: list_view
             adapter:
-                ListAdapter(data=root.data, cls=main.StudentListButton)
+                ListAdapter(data=root.data, cls=main.PluginsListButton)
+        ListView:
+            id: list_view2
+            adapter:
+                ListAdapter(data=root.outData, cls=main.PluginsOutputListButton)
     Widget:
         id: separator
         size_hint_y: None
@@ -64,7 +72,7 @@ MainWindow:
     padding: 10
     spacing: 10
     Label:
-        text: "test text"
+        text: root.text
     BoxLayout:
         size_hint_y: None
         height: "40dp"
@@ -72,4 +80,5 @@ MainWindow:
             text: "Home"
             on_release: root.switch_to("home")
         Button
-            text: "A button"
+            text: "Configured Plugins"
+            on_release: root.doConfiguredPlugins()

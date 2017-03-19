@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-
+import collections
+from kivy.adapters import listadapter
 from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -37,20 +38,35 @@ class PluginsScreen(Screen):
         self.manager.current = text
         self.current = text
 
+    def doConfiguredPlugins(self):
+        ret = ''
+        plugs = pluginManager.getConfiguredPlugins()
+        for p in plugs:
+            ret += p + "\n"
+        self.text = ret
+
 class MyScreenManager(ScreenManager):
     pass
 
-class StudentListButton(ListItemButton):
+class PluginsListButton(ListItemButton):
+    pass
+
+class PluginsOutputListButton(ListItemButton):
     pass
 
 class Listview(ListView):
-    pass
+    def __init__(self, **kwargs):
+        super(ListView, self).__init__(**kwargs)
+        ### Bind to `on_selection_change` here in `__init__`
+        self.ids['listview'].adapter.bind(on_selection_change=self.callback)
+        print(self.ids)
 
 class MainWindow(GridLayout):
     student_list = ObjectProperty()
     manager = ObjectProperty(None)
     text = StringProperty('')
     data = ListProperty([])
+    outData = ListProperty([])
 
     # Parse the plugin data and populate the listview
     def update(self):
@@ -59,19 +75,22 @@ class MainWindow(GridLayout):
         keys = s3Data.keys()
         for k in keys:
             tData.append(k)
-            for d in s3Data[k]:
-                for pkey in d.keys():
-                    tData.append(d[pkey])
 
         ec2Data = pluginManager.getEc2Plugs()
         keys = ec2Data.keys()
         for k in keys:
             tData.append(k)
-            for d in ec2Data[k]:
-                for pkey in d.keys():
-                    tData.append(d[pkey])
+
+        ebsData = pluginManager.getEbsPlugs()
+        keys = ebsData.keys()
+        print(ebsData)
+        for k in keys:
+            tData.append(k)
         self.data = tData
 
+    def clear(self):
+        self.data = []
+        self.outData = []
 
     # overwrite the switch_to function to control the
     #   screenmanager from here
@@ -79,29 +98,54 @@ class MainWindow(GridLayout):
         self.manager.current = text.screen
         self.current = text
 
+    def display(self):
+        if self.list_view.adapter.selection:
+            sel = self.list_view.adapter.selection[0].text
+            self.outData = []
 
-    def doConfiguredServices(self):
-        ret = ''
-        servs = pluginManager.getConfiguredServices()
-        for s in servs:
-            ret += s+"\n"
-        s = PluginsScreen(name = "confServices", text=ret)
-        l = Label(text = ret)
-        self.add_widget(s)
-        self.current=("confServices")
+            if "s3" in sel:
+                s3Data = pluginManager.getS3Plugs()
+                tData = []
+                res = s3Data[sel]
+                print("RES: "+str(res))
+                for k in res:
+                    if type(k) == str:
+                        tData.append(k)
+                    else:
+                        for p in k.keys():
+                            tData.append(k[p])
+                self.outData = tData
 
-    def doConfiguredPlugins(self):
-        ret = ''
-        plugs = pluginManager.getConfiguredPlugins()
-        for p in plugs:
-            ret += p + "\n"
-        s = PluginsScreen(name="confPlugins", text=ret)
-        l = Label(text=ret)
-        self.add_widget(s)
-        self.current = ("confPlugins")
+            elif "ec2" in sel:
+                ec2Data = pluginManager.getEc2Plugs()
+                tData = []
+                res = ec2Data[sel]
+                print("RES: "+ str(res))
+                if type(res) == collections.Counter:
+                    for k in res:
+                        tData.append(k+": "+str(res[k]))
+                else:
+                    for k in res:
+                        tData.append(k)
+                self.outData = tData
 
-    def pluginsScreen(self):
-        pass
+            elif "ebs" in sel:
+                ebsData = pluginManager.getEbsPlugs()
+                tData = []
+                res = ebsData[sel]
+                print("RES: "+ str(res))
+                if type(res) == collections.Counter:
+                    for k in res:
+                        tData.append(k+": "+str(res[k]))
+                else:
+                    for k in res:
+                        tData.append(k)
+                self.outData = tData
+
+
+
+
+
 
 class AWSApp(App):
     def build(self):

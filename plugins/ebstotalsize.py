@@ -6,3 +6,4 @@ def lambda_handler(e):
     for i in e:
         total += int(e[i]["Size"])
     ret.append(str(total))
+    return ret

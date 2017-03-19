@@ -49,10 +49,7 @@ def getS3Plugs():
     return s3PlugOutput
 
 def getEbsPlugs():
-    ebs = []
-    for k in ebsPlugOutput.keys():
-        ebs.append(ebsPlugOutput[k])
-    return ebs
+    return ebsPlugOutput
 
 def getConfiguredPlugins():
     return plugs
