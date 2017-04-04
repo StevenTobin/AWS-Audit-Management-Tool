@@ -4,14 +4,13 @@ import collections
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty
 from kivy.uix.popup import Popup
 from kivy.factory import Factory
 from kivy.uix.progressbar import ProgressBar
-from kivy.uix.widget import Widget
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
+from kivy.uix.dropdown import DropDown
 import threading
 import boto3
 import json
@@ -59,7 +58,6 @@ class HomeScreen(Screen):
 
         self.pop_up.dismiss()
 
-
     def showpopup(self):
         self.pop_up = Factory.PopupBox()
         self.pop_up.update_pop_up_text('Connecting...')
@@ -89,9 +87,6 @@ class PluginsScreen(Screen):
             ret += p + "\n"
         self.text = ret
 
-class TableRow(Widget):
-    pass
-
 class MyScreenManager(ScreenManager):
     pass
 
@@ -99,9 +94,6 @@ class PluginsListButton(ListItemButton):
     pass
 
 class PluginsOutputListButton(ListItemButton):
-    pass
-
-class OverviewListButton(ListItemButton):
     pass
 
 class Listview(ListView):
@@ -193,8 +185,8 @@ class MainWindow(GridLayout):
         tReg = len(regions)
 
         for p in profiles:
+            count = 1
             for region in regions:
-                count = 1
                 self.pop_up.value = 0
                 self.pop_up.update_pop_up_text('Current Region: '+str(region)+" ("+str(count)+"/"+str(tReg)+")")
                 session = boto3.Session(profile_name=p, region_name=region)
@@ -256,6 +248,9 @@ class MainWindow(GridLayout):
         self.pop_up = Factory.PopupBox()
         self.pop_up.update_pop_up_text('Connecting...')
         self.pop_up.open()
+
+class CustomDropDown(DropDown):
+    pass
 
 class PopupBox(Popup):
     pop_up_text = ObjectProperty()

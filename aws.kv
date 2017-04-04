@@ -9,41 +9,54 @@ MainWindow:
     list_view: list_view
     orientation: "vertical"
     cols:1
-    padding: 10
     spacing: 10
     BoxLayout:
-        size_hint_y: None
-        height: "40dp"
-        Button:
-            text: "load"
-            on_release: root.update()
-        Button:
-            text: "clear"
-            on_release: root.clear()
-        Button:
-            text: "display"
-            on_release: root.display()
-        Button:
-            text: "fetch data"
-            on_release: root.fetchButton()
-        Button:
-            text: "Build Table"
-            on_release: manager.get_screen("home").buildTable()
-        Button:
-            text: "Snapshot"
-            on_release: root.doSnapshot()
-        Button:
-            text: "Settings"
-            on_release: app.open_settings()
-    BoxLayout:
-        ListView:
-            id: list_view
-            adapter:
-                ListAdapter(data=root.data, cls=main.PluginsListButton)
-        ListView:
-            id: list_view2
-            adapter:
-                ListAdapter(data=root.outData, cls=main.PluginsOutputListButton)
+        orientation: "vertical"
+        ActionBar:
+            pos_hint: {'top':1}
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'AWS Audit'
+                    with_previous: False
+                ActionOverflow:
+                ActionButton:
+                    text: "Fetch Data"
+                    on_release: root.fetchButton()
+                ActionGroup:
+                    text: "Plugins"
+                    ActionButton:
+                        text: "Load"
+                        on_release: root.update()
+                    ActionButton:
+                        text: "Display"
+                        on_release: root.display()
+                    ActionButton:
+                        text: "Clear"
+                        on_release: root.clear()
+                ActionGroup:
+                    text: "Overview"
+                    ActionButton:
+                        text: "Build Table"
+                        on_release: manager.get_screen("home").buildTable()
+                ActionGroup:
+                    text: 'Options'
+                    ActionButton:
+                        text: "Snapshot"
+                        on_release: root.doSnapshot()
+                    ActionButton:
+                        text: "Settings"
+                        on_release: app.open_settings()
+
+        BoxLayout:
+            ListView:
+                id: list_view
+                adapter:
+                    ListAdapter(data=root.data, cls=main.PluginsListButton)
+            ListView:
+                id: list_view2
+                adapter:
+                    ListAdapter(data=root.outData, cls=main.PluginsOutputListButton)
     Widget:
         id: separator
         size_hint_y: None
@@ -81,18 +94,6 @@ MainWindow:
                 size_hint: (1, None)
 			    height: self.minimum_height
 
-
-
-
-
-
-
-
-
-<OverviewListButton>:
-    selected_color: 0, 0, 1, 1
-    deselected_color: 0, 0, 0, 1
-
 <PluginsScreen>
     id: "plugins"
     orientation: "vetical"
@@ -110,6 +111,19 @@ MainWindow:
             text: "Configured Plugins"
             on_release: root.doConfiguredPlugins()
 
+<CustomDropDown>
+    Button:
+        text: 'My first Item'
+        size_hint_y: None
+        height: 44
+    Label:
+        text: 'Unselectable item'
+        size_hint_y: None
+        height: 44
+    Button:
+        text: 'My second Item'
+        size_hint_y: None
+        height: 44
 
 <PopupBox>:
     pop_up_text: _pop_up_text
