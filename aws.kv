@@ -23,6 +23,18 @@ MainWindow:
         Button:
             text: "display"
             on_release: root.display()
+        Button:
+            text: "fetch data"
+            on_release: root.fetchButton()
+        Button:
+            text: "Build Table"
+            on_release: manager.get_screen("home").buildTable()
+        Button:
+            text: "Snapshot"
+            on_release: root.doSnapshot()
+        Button:
+            text: "Settings"
+            on_release: app.open_settings()
     BoxLayout:
         ListView:
             id: list_view
@@ -44,27 +56,42 @@ MainWindow:
                 size: separator.width, 2
 
     MyScreenManager:
+        id: manager
 
 <MyScreenManager>:
     id: "manager"
     HomeScreen:
         name: "home"
+        id: home
     PluginsScreen:
         name: "plugins"
 
 <HomeScreen>:
+    tableLayout: tableLayout
     id: "home"
     orientation: "vertical"
     padding: 10
     spacing: 10
     BoxLayout:
-        size_hint_y: None
-        height: "40dp"
-        Button:
-            text: "Plugins"
-            on_release: root.switch_to("plugins")
-        Button:
-            text: "A button"
+        ScrollView:
+            GridLayout:
+                id: tableLayout
+                cols: 4
+                padding: 10
+                size_hint: (1, None)
+			    height: self.minimum_height
+
+
+
+
+
+
+
+
+
+<OverviewListButton>:
+    selected_color: 0, 0, 1, 1
+    deselected_color: 0, 0, 0, 1
 
 <PluginsScreen>
     id: "plugins"
@@ -82,3 +109,24 @@ MainWindow:
         Button
             text: "Configured Plugins"
             on_release: root.doConfiguredPlugins()
+
+
+<PopupBox>:
+    pop_up_text: _pop_up_text
+    pop_up_info: _pop_up_info
+    size_hint: .5, .5
+    auto_dismiss: False
+    title: 'Status'
+
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            id: _pop_up_text
+            text: ''
+        PBar:
+            id: pb
+            height: '48dp'
+            value: root.pb_value
+        Label:
+            id: _pop_up_info
+            text: ''

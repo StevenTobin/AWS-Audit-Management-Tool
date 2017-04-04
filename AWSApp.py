@@ -1,25 +1,69 @@
 #!/usr/bin/python3
 import collections
-from kivy.adapters import listadapter
+
 from kivy.app import App
-from kivy.properties import ObjectProperty
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.properties import StringProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.listview import ListItemButton
-from kivy.uix.listview import ListView
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.uix.gridlayout import GridLayout
-from kivy.properties import ListProperty
-from kivy.adapters.dictadapter import DictAdapter
+from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty
+from kivy.uix.popup import Popup
+from kivy.factory import Factory
+from kivy.uix.progressbar import ProgressBar
+from kivy.uix.widget import Widget
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
+import threading
+import boto3
+import json
 import pluginManager
 import core
-from kivy.uix.spinner import Spinner
-from kivy.uix.widget import Widget
-import boto3
+
+s3Data = []
+ec2Data = []
+ebsData = []
+
+PopulatedFlag = 0
+FetchedFlag = 0
 
 class HomeScreen(Screen):
     text = StringProperty('')
+    tableLayout = ObjectProperty(None)
+
+    def buildTable(self):
+        self.tableLayout.clear_widgets()
+        self.tableLayout.add_widget(Label(text="Region", size_hint=(1, None), height=40))
+        self.tableLayout.add_widget(Label(text="Ec2Instances", size_hint=(1, None), height=40))
+        self.tableLayout.add_widget(Label(text="EbsVolumes", size_hint=(1, None), height=40))
+        self.tableLayout.add_widget(Label(text="UnattachedVolumes", size_hint=(1, None), height=40))
+        self.showpopup()
+        self.pop_up.value = 0
+        regions = core.doReadRegions()
+        self.pop_up.update_pop_up_info('Building overview')
+        tableLayout = self.tableLayout
+        for reg in regions:
+            self.pop_up.update_pop_up_text('Current Region: ' + str(reg))
+            self.tableLayout.add_widget(Label(text=reg, size_hint=(1, None), height=40))
+            tableLayout.height=self.tableLayout.minimum_height
+            for e in ec2Data:
+                if reg in e:
+                    k = len(e[reg].keys())
+                    self.tableLayout.add_widget(Label(text=str(k), size_hint=(1, None), height=40))
+                    tableLayout.height = self.tableLayout.minimum_height
+            for v in ebsData:
+                if reg in v:
+                    kv = len(v[reg].keys())
+                    self.tableLayout.add_widget(Label(text=str(kv), size_hint=(1, None), height=40))
+                    tableLayout.height = self.tableLayout.minimum_height
+            self.tableLayout.add_widget(Label(text="None unattached", size_hint=(1, None), height=40))
+            tableLayout.height = self.tableLayout.minimum_height
+
+        self.pop_up.dismiss()
+
+
+    def showpopup(self):
+        self.pop_up = Factory.PopupBox()
+        self.pop_up.update_pop_up_text('Connecting...')
+        self.pop_up.open()
 
     # overwrite the switch_to function to control the
     #   screenmanager from here
@@ -45,6 +89,9 @@ class PluginsScreen(Screen):
             ret += p + "\n"
         self.text = ret
 
+class TableRow(Widget):
+    pass
+
 class MyScreenManager(ScreenManager):
     pass
 
@@ -54,16 +101,15 @@ class PluginsListButton(ListItemButton):
 class PluginsOutputListButton(ListItemButton):
     pass
 
+class OverviewListButton(ListItemButton):
+    pass
+
 class Listview(ListView):
-    def __init__(self, **kwargs):
-        super(ListView, self).__init__(**kwargs)
-        ### Bind to `on_selection_change` here in `__init__`
-        self.ids['listview'].adapter.bind(on_selection_change=self.callback)
-        print(self.ids)
+    pass
 
 class MainWindow(GridLayout):
     student_list = ObjectProperty()
-    manager = ObjectProperty(None)
+    manager = ObjectProperty()
     text = StringProperty('')
     data = ListProperty([])
     outData = ListProperty([])
@@ -83,7 +129,6 @@ class MainWindow(GridLayout):
 
         ebsData = pluginManager.getEbsPlugs()
         keys = ebsData.keys()
-        print(ebsData)
         for k in keys:
             tData.append(k)
         self.data = tData
@@ -107,7 +152,6 @@ class MainWindow(GridLayout):
                 s3Data = pluginManager.getS3Plugs()
                 tData = []
                 res = s3Data[sel]
-                print("RES: "+str(res))
                 for k in res:
                     if type(k) == str:
                         tData.append(k)
@@ -120,7 +164,6 @@ class MainWindow(GridLayout):
                 ec2Data = pluginManager.getEc2Plugs()
                 tData = []
                 res = ec2Data[sel]
-                print("RES: "+ str(res))
                 if type(res) == collections.Counter:
                     for k in res:
                         tData.append(k+": "+str(res[k]))
@@ -133,7 +176,6 @@ class MainWindow(GridLayout):
                 ebsData = pluginManager.getEbsPlugs()
                 tData = []
                 res = ebsData[sel]
-                print("RES: "+ str(res))
                 if type(res) == collections.Counter:
                     for k in res:
                         tData.append(k+": "+str(res[k]))
@@ -142,12 +184,103 @@ class MainWindow(GridLayout):
                         tData.append(k)
                 self.outData = tData
 
+    def fetchData(self):
+        profiles = core.doReadProfiles()
+        print(profiles)
+        regions = core.doReadRegions()
+        resources = core.doReadResources()
 
+        tReg = len(regions)
 
+        for p in profiles:
+            for region in regions:
+                count = 1
+                self.pop_up.value = 0
+                self.pop_up.update_pop_up_text('Current Region: '+str(region)+" ("+str(count)+"/"+str(tReg)+")")
+                session = boto3.Session(profile_name=p, region_name=region)
+                resEc2 = {}
+                resEbs = {}
+                core.doCollectResources(session, region, resources)
+                self.pop_up.update_pop_up_info('Collecting Resources')
+                self.pop_up.setValue(20)
 
+                #
+                # Information Gathering
+                #
+
+                # ec2Data
+                currInst = core.doFindEC2Information(session, region)
+                self.pop_up.update_pop_up_info('Collecting EC2 instances')
+                self.pop_up.setValue(40)
+                resEc2[region] = currInst
+                ec2Data.append(resEc2)
+
+                # s3Data
+                s3Data = core.doFindS3Information(session, region)
+                self.pop_up.update_pop_up_info('Collecting S3 buckets')
+                self.pop_up.setValue(60)
+
+                # volData
+                currVol = core.doFindEBSInformation(session, region)
+                self.pop_up.update_pop_up_info('Collecting EBS volumes')
+                self.pop_up.setValue(80)
+                resEbs[region] = currVol
+                ebsData.append(resEbs)
+                count += 1
+        pluginManager.doRunPlugins(ec2Data, s3Data, ebsData, resources)
+        self.pop_up.update_pop_up_text("Complete!")
+        self.pop_up.setValue(100)
+        self.pop_up.update_pop_up_info("")
+        self.pop_up.dismiss()
+        FetchedFlag == True
+        print(ec2Data)
+        print("ebsdata")
+        print(ebsData)
+
+    def doSnapshot(self):
+        with open('ec2data.json', 'w') as outfile:
+            json.dump(ec2Data, outfile)
+
+        with open('ebsdata.json', 'w') as outfile:
+            json.dump(ebsData, outfile)
+
+        with open('s3data.json', 'w') as outfile:
+            json.dump(s3Data, outfile)
+
+    def fetchButton(self):
+        self.show_popup()
+        mythread = threading.Thread(target=self.fetchData)
+        mythread.start()
+
+    def show_popup(self):
+        self.pop_up = Factory.PopupBox()
+        self.pop_up.update_pop_up_text('Connecting...')
+        self.pop_up.open()
+
+class PopupBox(Popup):
+    pop_up_text = ObjectProperty()
+    pop_up_info = ObjectProperty()
+    pb_value = NumericProperty(0)
+    def update_pop_up_text(self, p_message):
+        self.pop_up_text.text = p_message
+
+    def update_pop_up_info(self, i_message):
+        self.pop_up_info.text = i_message
+
+    def setValue(self, val):
+        self.pb_value = val
+
+class PBar(ProgressBar):
+    pb_value = NumericProperty(0)
+
+    def setValue(self, val):
+        self.pb_value.value = val
 
 
 class AWSApp(App):
     def build(self):
         return MainWindow()
+
+    def build_config(self, config):
+        pass
 
