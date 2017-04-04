@@ -4,7 +4,10 @@ import collections
 def lambda_handler(e):
     ret = []
     count = collections.Counter()
-    for i in e:
-        count[e[i]["State"]] += 1
-        #ret.append(e[i]["State"])
+    for r in e:
+        for i in r:
+            for inst in r[i]:
+                if inst:
+                    count[r[i][inst]["State"]] += 1
+
     return count

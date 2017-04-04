@@ -2,6 +2,9 @@
 
 def lambda_handler(e):
     ret = []
-    for i in e:
-        ret.append(e[i]["State"])
+    for r in e:
+        for i in r:
+            for inst in r[i]:
+                if inst:
+                    ret.append(r[i][inst]["State"])
     return ret

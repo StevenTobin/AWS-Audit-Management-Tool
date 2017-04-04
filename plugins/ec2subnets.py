@@ -3,6 +3,9 @@ import collections
 
 def lambda_handler(e):
     count = collections.Counter()
-    for i in e:
-        count[e[i]["SubnetID"]] += 1
+    for r in e:
+        for i in r:
+            for inst in r[i]:
+                if inst:
+                    count[r[i][inst]["SubnetID"]] += 1
     return count

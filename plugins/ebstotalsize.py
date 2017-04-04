@@ -2,8 +2,9 @@
 
 def lambda_handler(e):
     total = 0
-    ret = []
-    for i in e:
-        total += int(e[i]["Size"])
-    ret.append(str(total))
-    return ret
+    for r in e:
+        for i in r:
+            for inst in r[i]:
+                if inst:
+                    total += int(r[i][inst]["Size"])
+    return str(total)
