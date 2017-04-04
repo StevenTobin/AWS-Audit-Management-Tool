@@ -2,7 +2,6 @@
 import collections
 
 def lambda_handler(e):
-    ret = []
     count = collections.Counter()
     for r in e:
         for i in r:
