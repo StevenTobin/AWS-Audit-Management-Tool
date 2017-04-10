@@ -36,6 +36,8 @@ def doReadRegions():
     if len(REGIONS) == 0:
         client = boto3.client('ec2')
         for region in client.describe_regions()['Regions']:
+            # This should allow the tool to automatically keep itself
+            # up to date with new regions
             REGIONS.append(region["RegionName"])
         return REGIONS
     else:
@@ -50,6 +52,7 @@ def doCollectResources(s, region, RESOURCES):
             ec2 = s.resource("ec2")
             for i in ec2.instances.all():
                 inst = str(i)
+                # cut so we only end up with the instance id
                 inst = inst[17:-2]
                 ec2l.append(inst)
             reg[region] = ec2l
@@ -61,6 +64,7 @@ def doCollectResources(s, region, RESOURCES):
             reg={}
             for v in ec2.volumes.all():
                 vol = str(v)
+                # cut so we only end up with the volume id
                 vol = vol[15:-2]
                 ebsl.append(vol)
             reg[region] = ebsl
@@ -119,31 +123,15 @@ def doFindS3Information(s, region):
         s3Data[b] = {"Name" : str(currBucket.name)}
     return s3Data
 
-def doGetProfiles():
-    return PROFILES
-
 def doGetRegions():
     reg = []
     for r in REGIONS:
         reg.append(r)
     return reg
 
-def doGetResources():
-    return RESOURCES
-
-
 if __name__ == '__main__':
     sys.path.append('/plugins/')
     doReadProfiles()
     doReadRegions()
     RESOURCES = doReadResources()
-    ec2Data=[]
-    ebsData=[]
-
-    #
-    # Plugins
-    #
-    print("Plugins----------------")
-    #pluginManager.doRunPlugins(ec2Data, s3Data, ebsData, RESOURCES)
-
     AWSApp.AWSApp().run()

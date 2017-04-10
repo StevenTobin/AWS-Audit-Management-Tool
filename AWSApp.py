@@ -21,38 +21,50 @@ s3Data = []
 ec2Data = []
 ebsData = []
 
-PopulatedFlag = 0
-FetchedFlag = 0
-
 class HomeScreen(Screen):
     text = StringProperty('')
     tableLayout = ObjectProperty(None)
 
     def buildTable(self):
         self.tableLayout.clear_widgets()
+
+        # Build first row
         self.tableLayout.add_widget(Label(text="Region", size_hint=(1, None), height=40))
         self.tableLayout.add_widget(Label(text="Ec2Instances", size_hint=(1, None), height=40))
         self.tableLayout.add_widget(Label(text="EbsVolumes", size_hint=(1, None), height=40))
         self.tableLayout.add_widget(Label(text="UnattachedVolumes", size_hint=(1, None), height=40))
+
+        # Show the popup screen
         self.showpopup()
         self.pop_up.value = 0
+
+        # Find regions
         regions = core.doReadRegions()
+
         self.pop_up.update_pop_up_info('Building overview')
         tableLayout = self.tableLayout
+
+        # In each of the following it is necessary to refresh the size of the table after adding
+        # an item (tableLayout.height=self.tableLayout.minimum_height)
         for reg in regions:
             self.pop_up.update_pop_up_text('Current Region: ' + str(reg))
             self.tableLayout.add_widget(Label(text=reg, size_hint=(1, None), height=40))
             tableLayout.height=self.tableLayout.minimum_height
+
+            # Count ec2 instances
             for e in ec2Data:
                 if reg in e:
                     k = len(e[reg].keys())
                     self.tableLayout.add_widget(Label(text=str(k), size_hint=(1, None), height=40))
                     tableLayout.height = self.tableLayout.minimum_height
+            # Count volumes
             for v in ebsData:
                 if reg in v:
                     kv = len(v[reg].keys())
                     self.tableLayout.add_widget(Label(text=str(kv), size_hint=(1, None), height=40))
                     tableLayout.height = self.tableLayout.minimum_height
+
+            # Count unnattached volumes
             self.tableLayout.add_widget(Label(text="None unattached", size_hint=(1, None), height=40))
             tableLayout.height = self.tableLayout.minimum_height
 
@@ -135,6 +147,8 @@ class MainWindow(GridLayout):
         self.manager.current = text.screen
         self.current = text
 
+
+    # Displays the output of the selected plugin
     def display(self):
         if self.list_view.adapter.selection:
             sel = self.list_view.adapter.selection[0].text
@@ -176,6 +190,7 @@ class MainWindow(GridLayout):
                         tData.append(k)
                 self.outData = tData
 
+    # Collect the neccesary information from the AWS account
     def fetchData(self):
         profiles = core.doReadProfiles()
         print(profiles)
@@ -220,11 +235,13 @@ class MainWindow(GridLayout):
                 ebsData.append(resEbs)
                 count += 1
         pluginManager.doRunPlugins(ec2Data, s3Data, ebsData, resources)
+
+        # Popup
         self.pop_up.update_pop_up_text("Complete!")
         self.pop_up.setValue(100)
         self.pop_up.update_pop_up_info("")
         self.pop_up.dismiss()
-        FetchedFlag == True
+
         print(ec2Data)
         print("ebsdata")
         print(ebsData)
@@ -239,6 +256,8 @@ class MainWindow(GridLayout):
         with open('s3data.json', 'w') as outfile:
             json.dump(s3Data, outfile)
 
+    # Without this function fetching data would make the app seem frozen. Start a new thread
+    # so that we can display the popup
     def fetchButton(self):
         self.show_popup()
         mythread = threading.Thread(target=self.fetchData)
