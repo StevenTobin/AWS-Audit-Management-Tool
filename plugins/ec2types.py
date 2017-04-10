@@ -2,12 +2,11 @@
 import collections
 
 def lambda_handler(e):
-    ret = []
     count = collections.Counter()
-    for r in e:
-        for i in r:
-            for inst in r[i]:
+    for region in e:
+        for instances in region:
+            for inst in region[instances]:
                 if inst:
-                    curr = r[i][inst]["Type"]
+                    curr = r[instances][inst]["Type"]
                     count[curr] += 1
     return count
