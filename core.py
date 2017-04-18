@@ -43,6 +43,8 @@ def doReadRegions():
     else:
         return REGIONS
 
+# Collect the instance ids of provisioned infrastructure so we can use them
+# later to collect more detailed information
 def doCollectResources(s, region, RESOURCES):
     for res in RESOURCES["Resources"]:
         if "ec2" in res:
@@ -79,11 +81,11 @@ def doCollectResources(s, region, RESOURCES):
 def doFindEC2Information(s, region):
     ec2 = s.resource("ec2")
     ec2Data = {}
-    for i in EC2INSTANCES:
-        if region in i:
-            for j in i[region]:
-                currInstance = ec2.Instance(id=j)
-                ec2Data[j] = {"Type"            : str(currInstance.instance_type),
+    for instances in EC2INSTANCES:
+        if region in instances:
+            for id in instances[region]:
+                currInstance = ec2.Instance(id=id)
+                ec2Data[id] = {"Type"            : str(currInstance.instance_type),
                               "State"           : str(currInstance.state),
                               "SecurityGroup"   : str(currInstance.security_groups),
                               "PrivateIP"       : str(currInstance.private_ip_address),
@@ -102,11 +104,11 @@ def doFindEC2Information(s, region):
 def doFindEBSInformation(s, region):
     ec2 = s.resource("ec2")
     volData = {}
-    for i in EBSVOLUMES:
-        if region in i:
-            for j in i[region]:
-                currVolume = ec2.Volume(j)
-                volData[j] = {"State"           : str(currVolume.state),
+    for instances in EBSVOLUMES:
+        if region in instances:
+            for id in instances[region]:
+                currVolume = ec2.Volume(id)
+                volData[id] = {"State"           : str(currVolume.state),
                               "Tags"            : str(currVolume.tags),
                               "Size"            : str(currVolume.size),
                               "VolumeType"      : str(currVolume.volume_type),
@@ -115,7 +117,7 @@ def doFindEBSInformation(s, region):
                               }
     return volData
 
-def doFindS3Information(s, region):
+def doFindS3Information(s):
     s3 = s.resource("s3")
     s3Data = {}
     for b in S3BUCKETS:

@@ -7,6 +7,6 @@ def lambda_handler(e):
         for instances in region:
             for inst in region[instances]:
                 if inst:
-                    curr = r[instances][inst]["Type"]
-                    count[curr] += 1
+                    count[region[instances][inst]["State"]] += 1
+
     return count

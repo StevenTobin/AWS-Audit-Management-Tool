@@ -26,15 +26,15 @@ def doRunPlugins(ec2, s3, ebs, resources):
         except:
             print("Failed import : plugins."+str(p))
             continue
-        if "ec2" in p and resources["Plugins"][p] == True:
+        if "ec2_" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ec2)
             ec2PlugOutput[p] = currPlugin
             plugs.append(p)
-        elif "s3" in p and resources["Plugins"][p] == True:
+        elif "s3_" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(s3)
             s3PlugOutput[p] = currPlugin
             plugs.append(p)
-        elif "ebs" in p and resources["Plugins"][p] == True:
+        elif "ebs_" in p and resources["Plugins"][p] == True:
             currPlugin = m.lambda_handler(ebs)
             ebsPlugOutput[p] = currPlugin
             plugs.append(p)

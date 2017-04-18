@@ -42,8 +42,8 @@ MainWindow:
                 ActionGroup:
                     text: 'Options'
                     ActionButton:
-                        text: "Snapshot"
-                        on_release: root.doSnapshot()
+                        text: "Save Snapshot"
+                        on_release: root.doSaveSnapshot()
                     ActionButton:
                         text: "Settings"
                         on_release: app.open_settings()
@@ -110,20 +110,6 @@ MainWindow:
         Button
             text: "Configured Plugins"
             on_release: root.doConfiguredPlugins()
-
-<CustomDropDown>
-    Button:
-        text: 'My first Item'
-        size_hint_y: None
-        height: 44
-    Label:
-        text: 'Unselectable item'
-        size_hint_y: None
-        height: 44
-    Button:
-        text: 'My second Item'
-        size_hint_y: None
-        height: 44
 
 <PopupBox>:
     pop_up_text: _pop_up_text

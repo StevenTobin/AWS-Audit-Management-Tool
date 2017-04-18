@@ -2,18 +2,17 @@
   "Resources": {
       "ec2": true,
       "s3": true,
-      "ebs": true,
-      "test": false
+      "ebs": true
   },
   "Plugins": {
-    "ec2types": true,
-    "ec2state": true,
-    "ec2secgroups": true,
-    "ec2subnets": true,
-    "ebstotalsize": true,
-    "ebsstate": true,
-    "ebsencrypted": true,
-    "s3bucketnames": true,
-    "test": false
+    "ec2_types": true,
+    "ec2_state": true,
+    "ec2_secgroups": true,
+    "ec2_subnets": true,
+    "ebs_totalsize": true,
+    "ebs_state": true,
+    "ebs_encrypted": true,
+    "ebs_unattachedvolumes": true,
+    "s3_bucketnames": true
   }
 }

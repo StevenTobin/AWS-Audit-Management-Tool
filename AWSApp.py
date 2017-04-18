@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-import collections
-
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.listview import ListView, ListItemButton
@@ -10,7 +8,9 @@ from kivy.factory import Factory
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.dropdown import DropDown
+import collections
+import time
+import datetime
 import threading
 import boto3
 import json
@@ -57,16 +57,26 @@ class HomeScreen(Screen):
                     k = len(e[reg].keys())
                     self.tableLayout.add_widget(Label(text=str(k), size_hint=(1, None), height=40))
                     tableLayout.height = self.tableLayout.minimum_height
+
             # Count volumes
+            count = 0
             for v in ebsData:
                 if reg in v:
                     kv = len(v[reg].keys())
+                    if kv:
+                        for key in v[reg].keys():
+                            if v[reg][key]["State"] == "available":
+                                count += 1
                     self.tableLayout.add_widget(Label(text=str(kv), size_hint=(1, None), height=40))
                     tableLayout.height = self.tableLayout.minimum_height
 
             # Count unnattached volumes
-            self.tableLayout.add_widget(Label(text="None unattached", size_hint=(1, None), height=40))
-            tableLayout.height = self.tableLayout.minimum_height
+            if count > 0:
+                self.tableLayout.add_widget(Label(text=str(count), size_hint=(1, None), height=40))
+                tableLayout.height = self.tableLayout.minimum_height
+            else:
+                self.tableLayout.add_widget(Label(text="0", size_hint=(1, None), height=40))
+                tableLayout.height = self.tableLayout.minimum_height
 
         self.pop_up.dismiss()
 
@@ -112,7 +122,6 @@ class Listview(ListView):
     pass
 
 class MainWindow(GridLayout):
-    student_list = ObjectProperty()
     manager = ObjectProperty()
     text = StringProperty('')
     data = ListProperty([])
@@ -146,7 +155,6 @@ class MainWindow(GridLayout):
     def switch_to(self, text):
         self.manager.current = text.screen
         self.current = text
-
 
     # Displays the output of the selected plugin
     def display(self):
@@ -185,55 +193,62 @@ class MainWindow(GridLayout):
                 if type(res) == collections.Counter:
                     for k in res:
                         tData.append(k+": "+str(res[k]))
+                elif type(res) == int:
+                    tData.append(str(res))
                 else:
                     for k in res:
                         tData.append(k)
                 self.outData = tData
 
-    # Collect the neccesary information from the AWS account
+    # Collect the necessary information from the AWS account
     def fetchData(self):
         profiles = core.doReadProfiles()
-        print(profiles)
         regions = core.doReadRegions()
         resources = core.doReadResources()
 
         tReg = len(regions)
+        loadPerTick = 100 / len(regions)
+        barValue = 0
+        print(loadPerTick)
+        self.pop_up.value = barValue
 
         for p in profiles:
             count = 1
             for region in regions:
-                self.pop_up.value = 0
                 self.pop_up.update_pop_up_text('Current Region: '+str(region)+" ("+str(count)+"/"+str(tReg)+")")
                 session = boto3.Session(profile_name=p, region_name=region)
                 resEc2 = {}
                 resEbs = {}
+                self.pop_up.update_pop_up_info('Collecting Infrastructure')
                 core.doCollectResources(session, region, resources)
-                self.pop_up.update_pop_up_info('Collecting Resources')
-                self.pop_up.setValue(20)
 
                 #
                 # Information Gathering
                 #
 
                 # ec2Data
-                currInst = core.doFindEC2Information(session, region)
                 self.pop_up.update_pop_up_info('Collecting EC2 instances')
-                self.pop_up.setValue(40)
+                currInst = core.doFindEC2Information(session, region)
                 resEc2[region] = currInst
                 ec2Data.append(resEc2)
 
-                # s3Data
-                s3Data = core.doFindS3Information(session, region)
-                self.pop_up.update_pop_up_info('Collecting S3 buckets')
-                self.pop_up.setValue(60)
 
                 # volData
-                currVol = core.doFindEBSInformation(session, region)
                 self.pop_up.update_pop_up_info('Collecting EBS volumes')
-                self.pop_up.setValue(80)
+                currVol = core.doFindEBSInformation(session, region)
+                barValue += loadPerTick
+                self.pop_up.setValue(barValue)
                 resEbs[region] = currVol
                 ebsData.append(resEbs)
                 count += 1
+
+            # s3Data
+            session = boto3.Session(profile_name=p)
+            self.pop_up.update_pop_up_info('Collecting S3 buckets')
+            s3Data = core.doFindS3Information(session)
+
+        self.pop_up.update_pop_up_info("Analysing data..")
+        self.pop_up.update_pop_up_text("Please wait...")
         pluginManager.doRunPlugins(ec2Data, s3Data, ebsData, resources)
 
         # Popup
@@ -242,19 +257,19 @@ class MainWindow(GridLayout):
         self.pop_up.update_pop_up_info("")
         self.pop_up.dismiss()
 
-        print(ec2Data)
-        print("ebsdata")
-        print(ebsData)
+    def doSaveSnapshot(self):
+        ts = time.time()
+        timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
-    def doSnapshot(self):
-        with open('ec2data.json', 'w') as outfile:
+        with open('data/ec2data', 'w') as outfile:
             json.dump(ec2Data, outfile)
 
-        with open('ebsdata.json', 'w') as outfile:
+        with open('data/ebsdata', 'w') as outfile:
             json.dump(ebsData, outfile)
 
-        with open('s3data.json', 'w') as outfile:
+        with open('data/s3data', 'w') as outfile:
             json.dump(s3Data, outfile)
+
 
     # Without this function fetching data would make the app seem frozen. Start a new thread
     # so that we can display the popup
@@ -267,9 +282,6 @@ class MainWindow(GridLayout):
         self.pop_up = Factory.PopupBox()
         self.pop_up.update_pop_up_text('Connecting...')
         self.pop_up.open()
-
-class CustomDropDown(DropDown):
-    pass
 
 class PopupBox(Popup):
     pop_up_text = ObjectProperty()
@@ -289,7 +301,6 @@ class PBar(ProgressBar):
 
     def setValue(self, val):
         self.pb_value.value = val
-
 
 class AWSApp(App):
     def build(self):
