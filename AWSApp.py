@@ -93,7 +93,7 @@ class HomeScreen(Screen):
         self.manager.current = text
         self.current = text
 
-class PluginsScreen(Screen):
+class PricingScreen(Screen):
     text = StringProperty('')
     priceLayout = ObjectProperty(None)
 
@@ -187,8 +187,6 @@ class PluginsScreen(Screen):
 
         filter = self.filter_products(prices)
         regionPrices = self.getPrices(filter, prices['terms'])
-
-        print(regionPrices['EU (Ireland)'])
 
         self.priceLayout.clear_widgets()
 
@@ -358,7 +356,6 @@ class MainWindow(GridLayout):
         tReg = len(regions)
         loadPerTick = 100 / len(regions)
         barValue = 0
-        print(loadPerTick)
         self.pop_up.value = barValue
 
         try:
@@ -409,6 +406,7 @@ class MainWindow(GridLayout):
         except:
             print("failed fetching data")
             self.pop_up.update_pop_up_text("Failed Fetching data")
+            self.pop_up.dismiss()
 
     def doSaveSnapshot(self):
         ts = time.time()
@@ -439,8 +437,8 @@ class MainWindow(GridLayout):
     def doBuildTable(self):
         if self.children[0].current == "home":
             self.children[0].get_screen('home').buildTable()
-        if self.children[0].current == "plugins":
-            self.children[0].get_screen('plugins').buildTable()
+        if self.children[0].current == "pricing":
+            self.children[0].get_screen('pricing').buildTable()
 
     def doExit(self):
         App.get_running_app().stop()

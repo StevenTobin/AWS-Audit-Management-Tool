@@ -85,8 +85,8 @@ MainWindow:
     HomeScreen:
         name: "home"
         id: home
-    PluginsScreen:
-        name: "plugins"
+    PricingScreen:
+        name: "pricing"
 
 <HomeScreen>:
     tableLayout: tableLayout
@@ -102,11 +102,7 @@ MainWindow:
             Button:
                 height: '40dp'
                 text: "Prices"
-                on_release: root.switch_to("plugins")
-            Button
-                height: '40dp'
-                text: "Configured Plugins"
-                on_release: root.doConfiguredPlugins()
+                on_release: root.switch_to("pricing")
         ScrollView:
             GridLayout:
                 id: tableLayout
@@ -115,9 +111,9 @@ MainWindow:
                 size_hint: (1, None)
 			    height: self.minimum_height
 
-<PluginsScreen>
+<PricingScreen>
     priceLayout: priceLayout
-    id: "plugins"
+    id: "pricing"
     orientation: "vertical"
     padding: 10
     spacing: 10
@@ -130,10 +126,6 @@ MainWindow:
                 height: '40dp'
                 text: "Home"
                 on_release: root.switch_to("home")
-            Button
-                height: '40dp'
-                text: "Refresh Prices"
-                on_release: root.doConfiguredPlugins()
         ScrollView:
             GridLayout:
                 id: priceLayout
