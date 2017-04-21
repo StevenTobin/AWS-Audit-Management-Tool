@@ -10,6 +10,12 @@ MainWindow:
     orientation: "vertical"
     cols:1
     spacing: 10
+    canvas.before:
+        Color:
+            rgb: .139, .189, .232
+        Rectangle:
+            pos: self.pos
+            size: self.size
     BoxLayout:
         orientation: "vertical"
         ActionBar:
@@ -38,7 +44,7 @@ MainWindow:
                     text: "Overview"
                     ActionButton:
                         text: "Build Table"
-                        on_release: manager.get_screen("home").buildTable()
+                        on_release: root.doBuildTable()
                 ActionGroup:
                     text: 'Options'
                     ActionButton:
@@ -47,6 +53,9 @@ MainWindow:
                     ActionButton:
                         text: "Settings"
                         on_release: app.open_settings()
+                    ActionButton:
+                        text: "Exit"
+                        on_release: root.doExit()
 
         BoxLayout:
             ListView:
@@ -86,6 +95,18 @@ MainWindow:
     padding: 10
     spacing: 10
     BoxLayout:
+        orientation:  "vertical"
+        BoxLayout:
+            size_hint_y: None
+            height: "40dp"
+            Button:
+                height: '40dp'
+                text: "Prices"
+                on_release: root.switch_to("plugins")
+            Button
+                height: '40dp'
+                text: "Configured Plugins"
+                on_release: root.doConfiguredPlugins()
         ScrollView:
             GridLayout:
                 id: tableLayout
@@ -95,21 +116,31 @@ MainWindow:
 			    height: self.minimum_height
 
 <PluginsScreen>
+    priceLayout: priceLayout
     id: "plugins"
-    orientation: "vetical"
+    orientation: "vertical"
     padding: 10
     spacing: 10
-    Label:
-        text: root.text
     BoxLayout:
-        size_hint_y: None
-        height: "40dp"
-        Button:
-            text: "Home"
-            on_release: root.switch_to("home")
-        Button
-            text: "Configured Plugins"
-            on_release: root.doConfiguredPlugins()
+        orientation:  "vertical"
+        BoxLayout:
+            size_hint_y: None
+            height: "40dp"
+            Button:
+                height: '40dp'
+                text: "Home"
+                on_release: root.switch_to("home")
+            Button
+                height: '40dp'
+                text: "Refresh Prices"
+                on_release: root.doConfiguredPlugins()
+        ScrollView:
+            GridLayout:
+                id: priceLayout
+                cols: 4
+                padding: 10
+                size_hint: (1, None)
+			    height: self.minimum_height
 
 <PopupBox>:
     pop_up_text: _pop_up_text
@@ -130,3 +161,26 @@ MainWindow:
         Label:
             id: _pop_up_info
             text: ''
+
+<Test>:
+    size_hint: .5, .5
+    pos_hint: {'center_x': .5, 'center_y': .5}
+    do_default_tab: False
+
+    TabbedPanelItem:
+        text: 'first tab'
+        Label:
+            text: 'First tab content area'
+    TabbedPanelItem:
+        text: 'tab2'
+        BoxLayout:
+            Label:
+                text: 'Second tab content area'
+            Button:
+                text: 'Button that does nothing'
+    TabbedPanelItem:
+        text: 'tab3'
+        RstDocument:
+            text:
+                '\\n'.join(("Hello world", "-----------",
+                "You are in the third tab."))
