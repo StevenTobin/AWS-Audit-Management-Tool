@@ -8,6 +8,8 @@ from kivy.factory import Factory
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
+import urllib.request
+import os.path
 import decimal
 import collections
 import time
@@ -18,14 +20,19 @@ import json
 import pluginManager
 import core
 
+#
+# Lists for plugin outputs
+#
 s3Data = []
 ec2Data = []
 ebsData = []
 
+# The HomeScreen for the ScreenManager
 class HomeScreen(Screen):
     text = StringProperty('')
     tableLayout = ObjectProperty(None)
 
+    # Build the overview table
     def buildTable(self):
         self.tableLayout.clear_widgets()
 
@@ -81,6 +88,7 @@ class HomeScreen(Screen):
 
         self.pop_up.dismiss()
 
+    # Display the popup window
     def showpopup(self):
         self.pop_up = Factory.PopupBox()
         self.pop_up.update_pop_up_text('Connecting...')
@@ -93,10 +101,16 @@ class HomeScreen(Screen):
         self.manager.current = text
         self.current = text
 
+# The pricing screen for the ScreenManager
 class PricingScreen(Screen):
     text = StringProperty('')
     priceLayout = ObjectProperty(None)
 
+    # We need to convert the programatic region names
+    #   to the descriptive ones for later
+    #
+    # This list will have to be updated manually
+    #   whenever a new region comes out
     def doConvertRegion(self, region):
         if region == "us-east-1":
             return "US East (N. Virginia)"
@@ -130,6 +144,7 @@ class PricingScreen(Screen):
         self.manager.current = text
         self.current = text
 
+    # Display configured plugins
     def doConfiguredPlugins(self):
         ret = ''
         plugs = pluginManager.getConfiguredPlugins()
@@ -137,6 +152,9 @@ class PricingScreen(Screen):
             ret += p + "\n"
         self.text = ret
 
+    #
+    # This function is taken from https://blog.rackspace.com/experimenting-aws-price-list-api
+    #
     def filter_products(self, products):
         filtered = []
 
@@ -158,7 +176,9 @@ class PricingScreen(Screen):
 
         return filtered
 
-
+    #
+    # This function is taken from https://blog.rackspace.com/experimenting-aws-price-list-api
+    #   some slight changes to suit our data structure
     def getPrices(self, filtered, terms):
         instances = {}
         for a in filtered:
@@ -176,15 +196,26 @@ class PricingScreen(Screen):
 
         return instances
 
+    # Build the prices table
     def buildTable(self):
 
         self.showpopup()
         self.pop_up.value = 0
         self.pop_up.update_pop_up_info('Collecting Price Information')
 
-        with open('data/prices', 'r') as openfile:
-            prices = json.load(openfile)
+        # If we have the price information
+        if (os.path.isfile('data/prices') ):
+            with open('data/prices', 'r') as openfile:
+                prices = json.load(openfile)
+        else:
+            # We don't have the price info so get it
+            urllib.request.urlretrieve('https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json', 'data/price')
 
+            with open('data/prices', 'r') as openfile:
+                prices = json.load(openfile)
+
+        # Get the prices we want and sort them into an
+        #   easy to use list
         filter = self.filter_products(prices)
         regionPrices = self.getPrices(filter, prices['terms'])
 
@@ -202,15 +233,13 @@ class PricingScreen(Screen):
         self.pop_up.update_pop_up_info('Building overview')
         priceLayout = self.priceLayout
 
-        # In each of the following it is necessary to refresh the size of the table after adding
-        # an item (tableLayout.height=self.tableLayout.minimum_height)
-
         total = decimal.Decimal(0.0)
         totalCount = 0
 
         for reg in regions:
             self.pop_up.update_pop_up_text('Current Region: ' + str(reg))
             self.priceLayout.add_widget(Label(text=reg, size_hint=(1, None), height=40))
+            # We have to reset the height each time we add something
             priceLayout.height=self.priceLayout.minimum_height
 
             instCount = 0
@@ -259,15 +288,19 @@ class PricingScreen(Screen):
 class MyScreenManager(ScreenManager):
     pass
 
+# This is used later to populate the plugin list
 class PluginsListButton(ListItemButton):
     pass
 
+# This is used later to populate the plugin output list
 class PluginsOutputListButton(ListItemButton):
     pass
 
+# Instantiate a list view object for the plugin and output lists
 class Listview(ListView):
     pass
 
+# This is out root widget class
 class MainWindow(GridLayout):
     manager = ObjectProperty()
     text = StringProperty('')
@@ -293,6 +326,7 @@ class MainWindow(GridLayout):
             tData.append(k)
         self.data = tData
 
+    # Clear the lists
     def clear(self):
         self.data = []
         self.outData = []
@@ -421,7 +455,6 @@ class MainWindow(GridLayout):
         with open('data/s3data', 'w') as outfile:
             json.dump(s3Data, outfile)
 
-
     # Without this function fetching data would make the app seem frozen. Start a new thread
     # so that we can display the popup
     def fetchButton(self):
@@ -434,6 +467,8 @@ class MainWindow(GridLayout):
         self.pop_up.update_pop_up_text('Connecting...')
         self.pop_up.open()
 
+    # If the user wants to build a table find out which screen they're
+    #   looking at and then call the correct buildTable function
     def doBuildTable(self):
         if self.children[0].current == "home":
             self.children[0].get_screen('home').buildTable()

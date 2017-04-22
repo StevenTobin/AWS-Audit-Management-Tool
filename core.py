@@ -19,6 +19,7 @@ EC2INSTANCES   = []
 S3BUCKETS     = []
 EBSVOLUMES     = []
 
+# Read the credentials file
 def doReadProfiles():
     config = configparser.ConfigParser()
     config.read(AWSCFG + "credentials")
@@ -27,11 +28,13 @@ def doReadProfiles():
         PROFILES.append(tkey)
     return PROFILES
 
+# Read the plugin configuration file
 def doReadResources():
     pluginData = open("plugins.json").read()
     RESOURCES = json.loads(pluginData)
     return RESOURCES
 
+# Find AWS regions
 def doReadRegions():
     if len(REGIONS) == 0:
         client = boto3.client('ec2')
@@ -78,6 +81,7 @@ def doCollectResources(s, region, RESOURCES):
                 name = b.name
                 S3BUCKETS.append(b.name)
 
+# Collect the ec2 information we want
 def doFindEC2Information(s, region):
     ec2 = s.resource("ec2")
     ec2Data = {}
@@ -100,7 +104,7 @@ def doFindEC2Information(s, region):
                               }
     return ec2Data
 
-
+# Collect the EBS information we want
 def doFindEBSInformation(s, region):
     ec2 = s.resource("ec2")
     volData = {}
@@ -117,6 +121,7 @@ def doFindEBSInformation(s, region):
                               }
     return volData
 
+# Collect the S3 information we want
 def doFindS3Information(s):
     s3 = s.resource("s3")
     s3Data = {}
@@ -125,6 +130,8 @@ def doFindS3Information(s):
         s3Data[b] = {"Name" : str(currBucket.name)}
     return s3Data
 
+# Get the regions we found and return them if anything else
+#   needs them
 def doGetRegions():
     reg = []
     for r in REGIONS:
